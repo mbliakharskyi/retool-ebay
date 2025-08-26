@@ -6,11 +6,16 @@ from app.ebay_client import search_ebay
 from app.analysis import match_top, summarize_prices, simple_verdict
 from app.sites import sites_for_category
 from app.research import gpt_research
+from dotenv import load_dotenv
 
 app = FastAPI()
 
+load_dotenv()
+
 @app.get("/")
-def hello():
+async def hello():
+    ebay_raw = await search_ebay("test")
+    print("ebay::", ebay_raw)
     return {"ok": True}
 
 @app.post("/compare")
