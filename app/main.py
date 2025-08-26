@@ -9,8 +9,8 @@ from app.research import gpt_research
 
 app = FastAPI()
 
-@app.get("/health")
-def health():
+@app.get("/")
+def hello():
     return {"ok": True}
 
 @app.post("/compare")
