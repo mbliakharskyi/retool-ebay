@@ -3,7 +3,7 @@ from typing import Optional, List, Any
 
 class CompareRequest(BaseModel):
     catawiki_url: str
-    include_research: bool = True
+    include_research: bool = False  # default off for Phase 1
 
 class CatawikiItem(BaseModel):
     id: Optional[int] = None

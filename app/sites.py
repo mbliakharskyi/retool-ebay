@@ -3,7 +3,6 @@ CATEGORY_SITES = {
     "wine": ["winesearcher.com", "winemarketplace.fr"],
     "coins": ["ma-shops.com", "numisbids.com"],
     "stamps": ["delcampe.net"],
-    # add more as needed
 }
 
 def sites_for_category(cat: str) -> list[str]:
