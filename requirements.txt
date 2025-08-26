@@ -1,0 +1,11 @@
+[project]
+name = "price-compare-api"
+version = "0.1.0"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "httpx",
+  "pydantic>=2",
+  "python-dotenv",
+  "orjson"
+]
