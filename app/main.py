@@ -23,12 +23,13 @@ async def compare(req: CompareRequest):
     if not req.catawiki_url:
         raise HTTPException(status_code=400, detail="catawiki_url is required")
 
-    # 1) Pull items from Apify (Catawiki scraper)
     items = await fetch_catawiki_items(req.catawiki_url)
     if not items:
         return {"items": [], "notes": "No items found from Catawiki"}
 
-    # 2) Fan-out per item
+    # pick just the first item for testing
+    first = items[0]
+
     async def run_item(raw: dict):
         cw = CatawikiItem(**raw)
         ebay_raw = await search_ebay(cw.title)
@@ -36,11 +37,10 @@ async def compare(req: CompareRequest):
         ebay_stats = summarize_prices(ebay_top, lambda x: x.get("price", {}).get("value"))
 
         research = []
+        # leave include_research as-is; it can be False for Phase 1
         if req.include_research:
             allowed = sites_for_category(cw.category or "")
             research = await gpt_research(cw.title, allowed)
-            # Optional: compute stats across research (if price numeric)
-            # research_stats = summarize_prices(research, lambda x: x.get("price"))
 
         verdict = simple_verdict(raw, ebay_stats)
         analysis = {
@@ -52,16 +52,14 @@ async def compare(req: CompareRequest):
                     "estimateMax": raw.get("estimatedPriceMax"),
                 },
                 "ebay": ebay_stats,
-                "research": {},  # fill when research returns numeric prices
+                "research": {},
             },
             "key_differences": [],
-            "recommendation": "buy" if verdict == "underpriced" else "watch" if verdict != "overpriced" else "skip",
+            "recommendation": "buy" if verdict == "underpriced" else ("watch" if verdict != "overpriced" else "skip"),
             "notes": "Heuristic verdict using eBay median vs Catawiki estimate.",
         }
 
-        return CompareResult(
-            source=raw, ebay=ebay_top, research=research, analysis=analysis
-        ).model_dump()
+        return CompareResult(source=raw, ebay=ebay_top, research=research, analysis=analysis).model_dump()
 
-    results = await asyncio.gather(*[run_item(i) for i in items], return_exceptions=False)
-    return {"items": results}
+    one_result = await run_item(first)
+    return {"items": [one_result]}  # << return list for consistency
