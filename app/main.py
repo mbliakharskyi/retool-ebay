@@ -31,6 +31,7 @@ async def compare(req: CompareRequest):
     first = items[0]
 
     async def run_item(raw: dict):
+        print("raw:", raw)
         cw = CatawikiItem(**raw)
         ebay_raw = await search_ebay(cw.title)
         ebay_top = match_top(cw.title, ebay_raw)
@@ -40,7 +41,9 @@ async def compare(req: CompareRequest):
         # leave include_research as-is; it can be False for Phase 1
         if req.include_research:
             allowed = sites_for_category(cw.category or "")
+            print('allowed:', allowed)
             research = await gpt_research(cw.title, allowed)
+            print("research:", research)
 
         verdict = simple_verdict(raw, ebay_stats)
         analysis = {
